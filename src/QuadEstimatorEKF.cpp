@@ -3,6 +3,7 @@
 #include "Utility/SimpleConfig.h"
 #include "Utility/StringUtils.h"
 #include "Math/Quaternion.h"
+#include "Math/Angles.h"
 
 using namespace SLR;
 
@@ -73,33 +74,44 @@ void QuadEstimatorEKF::Init()
 
 void QuadEstimatorEKF::UpdateFromIMU(V3F accel, V3F gyro)
 {
-  // Improve a complementary filter-type attitude filter
-  // 
-  // Currently a small-angle approximation integration method is implemented
-  // The integrated (predicted) value is then updated in a complementary filter style with attitude information from accelerometers
-  // 
-  // Implement a better integration method that uses the current attitude estimate (rollEst, pitchEst and ekfState(6))
-  // to integrate the body rates into new Euler angles.
-  //
-  // HINTS:
-  //  - there are several ways to go about this, including:
-  //    1) create a rotation matrix based on your current Euler angles, integrate that, convert back to Euler angles
-  //    OR 
-  //    2) use the Quaternion<float> class, which has a handy FromEuler123_RPY function for creating a quaternion from Euler Roll/PitchYaw
-  //       (Quaternion<float> also has a IntegrateBodyRate function, though this uses quaternions, not Euler angles)
+	// Improve a complementary filter-type attitude filter
+	// 
+	// Currently a small-angle approximation integration method is implemented
+	// The integrated (predicted) value is then updated in a complementary filter style with attitude information from accelerometers
+	// 
+	// Implement a better integration method that uses the current attitude estimate (rollEst, pitchEst and ekfState(6))
+	// to integrate the body rates into new Euler angles.
+	//
+	// HINTS:
+	//  - there are several ways to go about this, including:
+	//    1) create a rotation matrix based on your current Euler angles, integrate that, convert back to Euler angles
+	//    OR 
+	//    2) use the Quaternion<float> class, which has a handy FromEuler123_RPY function for creating a quaternion from Euler Roll/PitchYaw
+	//       (Quaternion<float> also has a IntegrateBodyRate function, though this uses quaternions, not Euler angles)
 
-  ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-  // SMALL ANGLE GYRO INTEGRATION:
-  // (replace the code below)
-  // make sure you comment it out when you add your own code -- otherwise e.g. you might integrate yaw twice
+	////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
+	// SMALL ANGLE GYRO INTEGRATION:
+	// (replace the code below)
+	// make sure you comment it out when you add your own code -- otherwise e.g. you might integrate yaw twice
 
-  float predictedPitch = pitchEst + dtIMU * gyro.y;
-  float predictedRoll = rollEst + dtIMU * gyro.x;
-  ekfState(6) = ekfState(6) + dtIMU * gyro.z;	// yaw
+	//float predictedPitch = pitchEst + dtIMU * gyro.y;
+	//float predictedRoll = rollEst + dtIMU * gyro.x;
+	//ekfState(6) = ekfState(6) + dtIMU * gyro.z;	// yaw
 
-  // normalize yaw to -pi .. pi
-  if (ekfState(6) > F_PI) ekfState(6) -= 2.f*F_PI;
-  if (ekfState(6) < -F_PI) ekfState(6) += 2.f*F_PI;
+	Quaternion<float> attitude = Quaternion<float>::FromEuler123_RPY(rollEst, pitchEst, ekfState(6));
+	Quaternion<float> attitude_update = attitude.IntegrateBodyRate(gyro, dtIMU);
+
+	float predictedPitch = attitude_update.Pitch();
+	float predictedRoll = attitude_update.Roll();
+	ekfState(6) = AngleNormF(attitude_update.Yaw());  // normalize yaw
+
+	  //new_euler_angles = euler_angles * dt + current_angle; // perform integration in world frame
+	  //ekfState = new_euler_angles; // update the state of the drone in the world frame
+	  //ekfState(6) = normalize_yaw(ekfState(6)); // normalize the yaw using system call
+
+	  //normalize yaw using funtion call already implemented
+  //if (ekfState(6) > F_PI) ekfState(6) -= 2.f*F_PI;
+  //if (ekfState(6) < -F_PI) ekfState(6) += 2.f*F_PI;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
