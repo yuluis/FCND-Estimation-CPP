@@ -1,54 +1,14 @@
 # Estimation Project #
 
-Welcome to the estimation project.  In this project, you will be developing the estimation portion of the controller used in the CPP simulator.  By the end of the project, your simulated quad will be flying with your estimator and your custom controller (from the previous project)!
+In this project an autopilot is implemented with focus on estimation aspects for sensors and drone movement.
 
+Gaussian distribution is useful in modelling sensor error and characterized by mean and standard deviation.  We take some sample IMU data and calculate these parameters which is a characterization of the sensor.  Such sensor characterization are used to model the sensor error used in the kalman filter.
 
-
-
-## The Tasks ##
-
-Once again, you will be building up your estimator in pieces.  At each step, there will be a set of success criteria that will be displayed both in the plots and in the terminal output to help you along the way.
-
-Project outline:
-
- - [Step 1: Sensor Noise](#step-1-sensor-noise)
- - [Step 2: Attitude Estimation](#step-2-attitude-estimation)
- - [Step 3: Prediction Step](#step-3-prediction-step)
- - [Step 4: Magnetometer Update](#step-4-magnetometer-update)
- - [Step 5: Closed Loop + GPS Update](#step-5-closed-loop--gps-update)
- - [Step 6: Adding Your Controller](#step-6-adding-your-controller)
-
-
-
-### Step 1: Sensor Noise ###
-
-For the controls project, the simulator was working with a perfect set of sensors, meaning none of the sensors had any noise.  The first step to adding additional realism to the problem, and developing an estimator, is adding noise to the quad's sensors.  For the first step, you will collect some simulated noisy sensor data and estimate the standard deviation of the quad's sensor.
-
-1. Run the simulator in the same way as you have before
-
-2. Choose scenario `06_NoisySensors`.  In this simulation, the interest is to record some sensor data on a static quad, so you will not see the quad move.  You will see two plots at the bottom, one for GPS X position and one for The accelerometer's x measurement.  The dashed lines are a visualization of a single standard deviation from 0 for each signal. The standard deviations are initially set to arbitrary values (after processing the data in the next step, you will be adjusting these values).  If they were set correctly, we should see ~68% of the measurement points fall into the +/- 1 sigma bound.  When you run this scenario, the graphs you see will be recorded to the following csv files with headers: `config/log/Graph1.txt` (GPS X data) and `config/log/Graph2.txt` (Accelerometer X data).
-
-3. Process the logged files to figure out the standard deviation of the the GPS X signal and the IMU Accelerometer X signal.
-
-4. Plug in your result into the top of `config/6_Sensornoise.txt`.  Specially, set the values for `MeasuredStdDev_GPSPosXY` and `MeasuredStdDev_AccelXY` to be the values you have calculated.
-
-5. Run the simulator. If your values are correct, the dashed lines in the simulation will eventually turn green, indicating you’re capturing approx 68% of the respective measurements (which is what we expect within +/- 1 sigma bound for a Gaussian noise model)
-
-***Success criteria:*** *Your standard deviations should accurately capture the value of approximately 68% of the respective measurements.*
-
-NOTE: Your answer should match the settings in `SimulatedSensors.txt`, where you can also grab the simulated noise parameters for all the other sensors.
 
 
 ### Step 2: Attitude Estimation ###
 
-Now let's look at the first step to our state estimation: including information from our IMU.  In this step, you will be improving the complementary filter-type attitude filter with a better rate gyro attitude integration scheme.
-
-1. Run scenario `07_AttitudeEstimation`.  For this simulation, the only sensor used is the IMU and noise levels are set to 0 (see `config/07_AttitudeEstimation.txt` for all the settings for this simulation).  There are two plots visible in this simulation.
-   - The top graph is showing errors in each of the estimated Euler angles.
-   - The bottom shows the true Euler angles and the estimates.
-Observe that there’s quite a bit of error in attitude estimation.
-
-2. In `QuadEstimatorEKF.cpp`, you will see the function `UpdateFromIMU()` contains a complementary filter-type attitude filter.  To reduce the errors in the estimated attitude (Euler Angles), implement a better rate gyro attitude integration scheme.  You should be able to reduce the attitude errors to get within 0.1 rad for each of the Euler angles, as shown in the screenshot below.
+A non-linear complementary filter is used to attitude estimation.  The IMU attitude is converted into the world frame, integrated by small time dt and combined with accelerometer readings.
 
 ![attitude example](images/attitude-screenshot.png)
 
