@@ -105,13 +105,6 @@ void QuadEstimatorEKF::UpdateFromIMU(V3F accel, V3F gyro)
 	float predictedRoll = attitude_update.Roll();
 	ekfState(6) = AngleNormF(attitude_update.Yaw());  // normalize yaw
 
-	  //new_euler_angles = euler_angles * dt + current_angle; // perform integration in world frame
-	  //ekfState = new_euler_angles; // update the state of the drone in the world frame
-	  //ekfState(6) = normalize_yaw(ekfState(6)); // normalize the yaw using system call
-
-	  //normalize yaw using funtion call already implemented
-  //if (ekfState(6) > F_PI) ekfState(6) -= 2.f*F_PI;
-  //if (ekfState(6) < -F_PI) ekfState(6) += 2.f*F_PI;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -177,11 +170,11 @@ VectorXf QuadEstimatorEKF::PredictState(VectorXf curState, float dt, V3F accel, 
     predictedState(1) = curState(1) + dt * curState(4);
     predictedState(2) = curState(2) + dt * curState(5);
     
-    V3F acc_w = attitude.Rotate_BtoI(accel);
+    V3F accel_w = attitude.Rotate_BtoI(accel);
     
-    predictedState(3) = curState(3) + dt * acc_w.x;
-    predictedState(4) = curState(4) + dt * acc_w.y;
-    predictedState(5) = curState(5) + dt * acc_w.z - dt * CONST_GRAVITY;
+    predictedState(3) = curState(3) + dt * accel_w.x;
+    predictedState(4) = curState(4) + dt * accel_w.y;
+    predictedState(5) = curState(5) + dt * accel_w.z - dt * CONST_GRAVITY;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
@@ -302,7 +295,16 @@ void QuadEstimatorEKF::UpdateFromGPS(V3F pos, V3F vel)
   //  - The GPS measurement covariance is available in member variable R_GPS
   //  - this is a very simple update
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-
+    zFromX(0) = ekfState(0);
+    zFromX(1) = ekfState(1);
+    zFromX(2) = ekfState(2);
+    zFromX(3) = ekfState(3);
+    zFromX(4) = ekfState(4);
+    zFromX(5) = ekfState(5);
+    
+    for ( int i = 0; i < 6; i++) {
+        hPrime(i,i) = 1;
+    }
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
   Update(z, hPrime, R_GPS, zFromX);
@@ -323,7 +325,16 @@ void QuadEstimatorEKF::UpdateFromMag(float magYaw)
   //    (you don't want to update your yaw the long way around the circle)
   //  - The magnetomer measurement covariance is available in member variable R_Mag
   ////////////////////////////// BEGIN STUDENT CODE ///////////////////////////
-
+    zFromX(0) = ekfState(6);
+    //float magErr = magYaw - ekfState(6);
+    //zFromX(0) = AngleNormF(magErr);
+    float diff = magYaw - ekfState(6);
+    if ( diff > F_PI ) {
+        zFromX(0) += 2.f*F_PI;
+    } else if ( diff < -F_PI ) {
+        zFromX(0) -= 2.f*F_PI;
+    }
+    hPrime(0, 6) = 1;
 
   /////////////////////////////// END STUDENT CODE ////////////////////////////
 
