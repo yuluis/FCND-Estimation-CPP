@@ -5,10 +5,14 @@ In this project an autopilot is implemented with focus on estimation aspects for
 
 Gaussian distribution is useful in modelling sensor error and characterized by mean and standard deviation.  We take some sample IMU data and calculate these parameters which is a characterization of the sensor.  Such sensor characterization are used to model the sensor error used in the kalman filter.
 
-The standard deviation is calculated by performing the math. 
+The standard deviation is calculated by using python to extract the generated noise data and numpy to performing the math. 
 ![attitude example](images/stddev.png)
 
-python was used to extract the sample data and numpy to perform the calculation.
+The standard deviation was plugged into the sensor noise model to verify that indeed it captured about 68% or one standard deviation of the samples.
+
+MeasuredStdDev_GPSPosXY = 0.70417
+MeasuredStdDev_AccelXY = 0.502118 
+
 
 ### Step 2: Attitude Estimation ###
 
