@@ -1,10 +1,14 @@
 # Estimation Project #
 
 In this project an autopilot is implemented with focus on estimation aspects for sensors and drone movement.
+### Step 1: Calculate standard deviation ###
 
 Gaussian distribution is useful in modelling sensor error and characterized by mean and standard deviation.  We take some sample IMU data and calculate these parameters which is a characterization of the sensor.  Such sensor characterization are used to model the sensor error used in the kalman filter.
 
+The standard deviation is calculated by performing the math. 
+![attitude example](images/stddev.png)
 
+python was used to extract the sample data and numpy to perform the calculation.
 
 ### Step 2: Attitude Estimation ###
 
